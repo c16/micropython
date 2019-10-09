@@ -14,7 +14,7 @@
     <PyQstrDefs>$(PySrcDir)qstrdefs.h</PyQstrDefs>
     <QstrDefsCollected>$(DestDir)qstrdefscollected.h</QstrDefsCollected>
     <QstrGen>$(DestDir)qstrdefs.generated.h</QstrGen>
-    <PyPython Condition="'$(PyPython)' == ''">python</PyPython>
+    <PyPython Condition="'$(PyPython)' == ''">py.exe -3</PyPython>
     <CLToolExe Condition="'$(CLToolExe)' == ''">cl.exe</CLToolExe>
     <PyClTool>$([System.IO.Path]::Combine(`$(CLToolPath)`, `$(CLToolExe)`))</PyClTool>
   </PropertyGroup>

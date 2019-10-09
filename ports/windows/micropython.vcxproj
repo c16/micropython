@@ -21,6 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{740F3C30-EB6C-4B59-9C50-AE4D5A4A9D12}</ProjectGuid>
     <RootNamespace>micropython</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -88,12 +89,12 @@
     <ClCompile Include="$(PyBaseDir)lib\mp-readline\*.c" />
     <ClCompile Include="$(PyBaseDir)ports\windows\*.c" />
     <ClCompile Include="$(PyBaseDir)ports\windows\msvc\*.c" />
-    <ClCompile Include="$(PyBaseDir)ports\unix\file.c"/>
-    <ClCompile Include="$(PyBaseDir)ports\unix\gccollect.c"/>
-    <ClCompile Include="$(PyBaseDir)ports\unix\input.c"/>
-    <ClCompile Include="$(PyBaseDir)ports\unix\main.c"/>
-    <ClCompile Include="$(PyBaseDir)ports\unix\modos.c"/>
-    <ClCompile Include="$(PyBaseDir)ports\unix\modtime.c"/>
+    <ClCompile Include="$(PyBaseDir)ports\unix\file.c" />
+    <ClCompile Include="$(PyBaseDir)ports\unix\gccollect.c" />
+    <ClCompile Include="$(PyBaseDir)ports\unix\input.c" />
+    <ClCompile Include="$(PyBaseDir)ports\unix\main.c" />
+    <ClCompile Include="$(PyBaseDir)ports\unix\modos.c" />
+    <ClCompile Include="$(PyBaseDir)ports\unix\modtime.c" />
     <ClCompile Include="$(PyBaseDir)ports\unix\modmachine.c" />
   </ItemGroup>
   <ItemGroup>
