@@ -36,6 +36,10 @@
 #include "extmod/machine_signal.h"
 #include "extmod/machine_pulse.h"
 
+#if MICROPY_PY_MACHINE_UART
+#include "uart.h"
+#endif
+
 #if MICROPY_PLAT_DEV_MEM
 #include <errno.h>
 #include <fcntl.h>
@@ -77,6 +81,7 @@ uintptr_t mod_machine_mem_get_addr(mp_obj_t addr_o, uint align) {
     return addr;
 }
 
+
 STATIC const mp_rom_map_elem_t machine_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_umachine) },
 
@@ -88,6 +93,9 @@ STATIC const mp_rom_map_elem_t machine_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_Signal), MP_ROM_PTR(&machine_signal_type) },
     #if MICROPY_PY_MACHINE_PULSE
     { MP_ROM_QSTR(MP_QSTR_time_pulse_us), MP_ROM_PTR(&machine_time_pulse_us_obj) },
+    #endif
+    #if MICROPY_PY_MACHINE_UART
+    { MP_ROM_QSTR(MP_QSTR_UART),  MP_ROM_PTR(&pyb_uart_type) },
     #endif
 };
 
