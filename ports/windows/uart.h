@@ -67,9 +67,12 @@ bool uart_init(pyb_uart_obj_t *uart_obj,
     uint32_t baudrate, uint32_t bits, uint32_t parity, uint32_t stop, uint32_t flow);
 
 void uart_deinit(pyb_uart_obj_t *uart_obj);
+
+
 mp_uint_t uart_rx_any(pyb_uart_obj_t *uart_obj);
-bool uart_sendbreak(pyb_uart_obj_t *self);
 size_t uart_rx_data(pyb_uart_obj_t *self, void *src_out, size_t num_chars, int *errcode);
+bool uart_sendbreak(pyb_uart_obj_t *self);
+bool uart_timeouts(pyb_uart_obj_t *self, uint16_t timeout, uint16_t timeout_char);
 size_t uart_tx_data(pyb_uart_obj_t *self, const void *src_in, size_t num_chars, int *errcode);
 
 static inline bool uart_tx_avail(pyb_uart_obj_t *self) {

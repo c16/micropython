@@ -161,23 +161,14 @@ STATIC mp_obj_t pyb_uart_init_helper(pyb_uart_obj_t *self, size_t n_args, const 
 
     // set timeout
     self->timeout = args.timeout.u_int;
-
-    // set timeout_char
     self->timeout_char = args.timeout_char.u_int;
-    COMMTIMEOUTS commtimeouts;
-    GetCommTimeouts(self->hComm, &commtimeouts);
-    if (self->timeout || self->timeout_char) {
-        commtimeouts.ReadTotalTimeoutConstant = self->timeout;
-        commtimeouts.ReadIntervalTimeout = self->timeout_char;
-    }
-    else {
-        commtimeouts.ReadIntervalTimeout = MAXDWORD;
-        commtimeouts.ReadTotalTimeoutMultiplier = 0;
-        commtimeouts.ReadTotalTimeoutConstant = 0;
-    }
 
-    SetCommTimeouts(self->hComm, &commtimeouts);
+    self->is_enabled  &= uart_timeouts(self, self->timeout, self->timeout_char);
 
+    if (!self->is_enabled) {
+        uart_deinit(self);
+    }
+    
     return mp_const_none;
 }
 
@@ -376,6 +367,7 @@ bool uart_init(pyb_uart_obj_t *uart_obj,
     if (uart_obj->hComm == INVALID_HANDLE_VALUE) {
         uart_obj->hComm = NULL;
     }
+
     DCB dcb;
     SecureZeroMemory(&dcb, sizeof(DCB));
     dcb.DCBlength = sizeof(DCB);
@@ -393,6 +385,7 @@ bool uart_init(pyb_uart_obj_t *uart_obj,
         dcb.ByteSize = 7;
     }
     else {
+        uart_deinit(uart_obj);
         mp_raise_ValueError("unsupported bits");
     }
 
@@ -405,6 +398,7 @@ bool uart_init(pyb_uart_obj_t *uart_obj,
         dcb.Parity = parity;
     }
     else {
+        uart_deinit(uart_obj);
         mp_raise_ValueError("unsupported parity");
     }
 
@@ -416,6 +410,7 @@ bool uart_init(pyb_uart_obj_t *uart_obj,
         dcb.StopBits = TWOSTOPBITS;
     }
     else {
+        uart_deinit(uart_obj);
         mp_raise_ValueError("unsupported stopbits");
     }
 
@@ -437,15 +432,17 @@ bool uart_init(pyb_uart_obj_t *uart_obj,
         }
     }
     else {
+        uart_deinit(uart_obj);
         mp_raise_ValueError("unsupported flow");
     }
 
     // init UART (if it fails, it's because the port doesn't exist)
     if (!SetCommState(uart_obj->hComm, &dcb)) {
+        uart_deinit(uart_obj);
         nlr_raise(mp_obj_new_exception_msg_varg(&mp_type_ValueError, "UART(%d) doesn't exist", uart_obj->uart_id));
     }
 
-    return true;
+    return uart_obj->hComm != NULL;
 }
 
 mp_uint_t uart_rx_any(pyb_uart_obj_t *uart_obj)
@@ -487,6 +484,25 @@ bool uart_sendbreak(pyb_uart_obj_t *self)
 
     bSuccess &= ClearCommBreak(hComm);
     bSuccess &= SetCommMask(hComm, mask);
+
+    return bSuccess;
+}
+
+bool uart_timeouts(pyb_uart_obj_t *self, uint16_t timeout, uint16_t timeout_char)
+{
+    COMMTIMEOUTS commtimeouts;
+    BOOL bSuccess = GetCommTimeouts(self->hComm, &commtimeouts);
+    if (timeout || timeout_char) {
+        commtimeouts.ReadTotalTimeoutConstant = timeout;
+        commtimeouts.ReadIntervalTimeout = timeout_char;
+    }
+    else {
+        commtimeouts.ReadIntervalTimeout = MAXDWORD;
+        commtimeouts.ReadTotalTimeoutMultiplier = 0U;
+        commtimeouts.ReadTotalTimeoutConstant = 0U;
+    }
+
+    bSuccess &= SetCommTimeouts(self->hComm, &commtimeouts);
 
     return bSuccess;
 }
