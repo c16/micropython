@@ -54,7 +54,7 @@
 ///     uart = UART(1, 9600)                         # init with given baudrate
 ///     uart.init(9600, bits=8, parity=None, stop=1) # init with given parameters
 ///
-/// Bits can be 8 or 9.  Parity can be None, 0 (even) or 1 (odd).  Stop can be 1 or 2.
+/// Bits can be 7 or 8.  Parity can be None, 0 (even) or 1 (odd).  Stop can be 1 or 2.
 ///
 /// A UART object acts like a stream object and reading and writing is done
 /// using the standard stream methods:
@@ -126,7 +126,7 @@ STATIC void pyb_uart_print(const mp_print_t *print, mp_obj_t self_in, mp_print_k
 ///   - `stop` is the number of stop bits, 1 or 2.
 ///   - `timeout` is the timeout in milliseconds to wait for the first character.
 ///   - `timeout_char` is the timeout in milliseconds to wait between characters.
-///   - `flow` is RTS | CTS where RTS == 256, CTS == 512
+///   - `flow` is RTS | CTS where RTS == 1, CTS == 2
 ///   - `read_buf_len` is the character length of the read buffer (0 to disable).
 STATIC mp_obj_t pyb_uart_init_helper(pyb_uart_obj_t *self, size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     static const mp_arg_t allowed_args[] = {
@@ -172,9 +172,9 @@ STATIC mp_obj_t pyb_uart_init_helper(pyb_uart_obj_t *self, size_t n_args, const 
     return mp_const_none;
 }
 
-/// \classmethod \constructor(bus, ...)
+/// \classmethod \constructor(comport, ...)
 ///
-/// Construct a UART object on the given bus.  `bus` can be 1-6, or 'XA', 'XB', 'YA', or 'YB'.
+/// Construct a UART object on the given comport; 1 onwards
 /// With no additional parameters, the UART object is created but not
 /// initialised (it has the settings from the last initialisation of
 /// the bus, if any).  If extra arguments are given, the bus is initialised.
@@ -186,10 +186,22 @@ STATIC mp_obj_t pyb_uart_make_new(const mp_obj_type_t *type, size_t n_args, size
 
     // work out port
     int uart_id = 0;
-    uart_id = mp_obj_get_int(args[0]);
-      //  if (!uart_exists(uart_id)) {
-      //      nlr_raise(mp_obj_new_exception_msg_varg(&mp_type_ValueError, "UART(%d) doesn't exist", uart_id));
-      //  }
+    if (mp_obj_is_str(args[0])) {
+        const char *szPort = mp_obj_str_get_str(args[0]);
+        if (strlen(szPort) > 3) {
+            uart_id = atoi(&szPort[3]);
+        }
+        else {
+            uart_id = atoi(szPort);
+        }
+    }
+    else {
+        uart_id = mp_obj_get_int(args[0]);
+    }
+
+    if (!uart_exists(uart_id)) {
+        nlr_raise(mp_obj_new_exception_msg_varg(&mp_type_ValueError, "UART(%d) doesn't exist", uart_id));
+    }
     
     pyb_uart_obj_t *self = m_new0(pyb_uart_obj_t, 1);
     self->base.type = &pyb_uart_type;
@@ -345,6 +357,25 @@ const mp_obj_type_t pyb_uart_type = {
 void uart_deinit(pyb_uart_obj_t *uart_obj)
 {
     CloseHandle(uart_obj->hComm);
+}
+
+bool uart_exists(int uart_id)
+{
+    char szPort[10];
+    sprintf(szPort, "com%d", uart_id); 
+    HANDLE hComm = CreateFileA(szPort,
+                               GENERIC_READ | GENERIC_WRITE,
+                               0,
+                               0,
+                               OPEN_EXISTING,
+                               0,
+                               0);
+
+    if (hComm != INVALID_HANDLE_VALUE) {
+        CloseHandle(hComm);
+    }
+
+    return hComm != INVALID_HANDLE_VALUE;
 }
 
 bool uart_init(pyb_uart_obj_t *uart_obj,

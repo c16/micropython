@@ -30,31 +30,11 @@
 #include "windows.h"
 struct _mp_irq_obj_t;
 
-typedef enum {
-    PYB_UART_NONE = 0,
-    PYB_UART_1 = 1,
-    PYB_UART_2 = 2,
-    PYB_UART_3 = 3,
-    PYB_UART_4 = 4,
-    PYB_UART_5 = 5,
-    PYB_UART_6 = 6,
-    PYB_UART_7 = 7,
-    PYB_UART_8 = 8,
-    PYB_UART_9 = 9,
-    PYB_UART_10 = 10,
-} pyb_uart_t;
-
-#define CHAR_WIDTH_8BIT (0)
-#define CHAR_WIDTH_9BIT (1)
-
 typedef struct _pyb_uart_obj_t {
     mp_obj_base_t base;
     HANDLE hComm;
-    pyb_uart_t uart_id : 8;
+    uint16_t uart_id;
     bool is_enabled : 1;
-    bool attached_to_repl;              // whether the UART is attached to REPL
-    byte char_width;                    // 0 for 7,8 bit chars, 1 for 9 bit chars
-    uint16_t char_mask;                 // 0x7f for 7 bit, 0xff for 8 bit, 0x1ff for 9 bit
     uint16_t timeout;                   // timeout waiting for first char
     uint16_t timeout_char;              // timeout waiting between chars
     uint16_t read_buf_len;              // len in chars; buf can hold len-1 chars
@@ -65,10 +45,8 @@ extern const mp_obj_type_t pyb_uart_type;
 bool uart_exists(int uart_id);
 bool uart_init(pyb_uart_obj_t *uart_obj,
     uint32_t baudrate, uint32_t bits, uint32_t parity, uint32_t stop, uint32_t flow);
-
 void uart_deinit(pyb_uart_obj_t *uart_obj);
-
-
+bool uart_exists(int uart_id);
 mp_uint_t uart_rx_any(pyb_uart_obj_t *uart_obj);
 size_t uart_rx_data(pyb_uart_obj_t *self, void *src_out, size_t num_chars, int *errcode);
 bool uart_sendbreak(pyb_uart_obj_t *self);
