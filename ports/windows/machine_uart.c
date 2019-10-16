@@ -362,7 +362,7 @@ void uart_deinit(pyb_uart_obj_t *uart_obj)
 bool uart_exists(int uart_id)
 {
     char szPort[10];
-    sprintf(szPort, "com%d", uart_id); 
+    sprintf(szPort, "\\\\.\\com%d", uart_id); 
     HANDLE hComm = CreateFileA(szPort,
                                GENERIC_READ | GENERIC_WRITE,
                                0,
@@ -386,7 +386,7 @@ bool uart_init(pyb_uart_obj_t *uart_obj,
                uint32_t flow)
 {
     char szPort[10];
-    sprintf(szPort, "com%d", uart_obj->uart_id); //@@ replace wiht mp version of sprintf when I find it
+    sprintf(szPort, "\\\\.\\com%d", uart_obj->uart_id); //@@ replace wiht mp version of sprintf when I find it
     uart_obj->hComm = CreateFileA(szPort,
                               GENERIC_READ | GENERIC_WRITE,
                               0,
