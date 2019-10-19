@@ -31,6 +31,6 @@ jobs:
       - name: make
         run: |
           cd mpy-cross
-          mingw32-make
+          mingw64-make
     
     
