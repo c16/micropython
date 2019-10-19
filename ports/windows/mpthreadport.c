@@ -47,7 +47,8 @@ typedef HANDLE sem_t;
 
 // this structure forms a linked list, one node per active thread
 typedef struct _thread_t {
-    HANDLE id;               // system id of thread
+    HANDLE hThread;         // handle of thread
+    HANDLE id;              // system id of thread
     int ready;              // whether the thread is ready and running
     void *arg;              // thread Python args, a GC root pointer
     struct _thread_t *next;
@@ -105,7 +106,7 @@ void mp_thread_deinit(void) {
     while (thread->next != NULL) {
         thread_t *th = thread;
         thread = thread->next;
-        CloseHandle(th->id);
+        CloseHandle(th->hThread);
         free(th);
     }
     mp_thread_mutex_unlock(&thread_mutex);
@@ -179,8 +180,8 @@ void mp_thread_create(void *(*entry)(void*), void *arg, size_t *stack_size) {
     mp_thread_mutex_lock(&thread_mutex,1);
 
     // create thread
-    HANDLE id = CreateThread(NULL, *stack_size, (LPTHREAD_START_ROUTINE)entry, arg, 0, NULL);
-    int ret = (id != NULL) ? 0 : -1;
+    HANDLE hThread = CreateThread(NULL, *stack_size, (LPTHREAD_START_ROUTINE)entry, arg, 0, NULL);
+    int ret = (hThread != NULL) ? 0 : -1;
     if (ret != 0) {
         mp_thread_mutex_unlock(&thread_mutex);
         goto er;
@@ -192,7 +193,8 @@ void mp_thread_create(void *(*entry)(void*), void *arg, size_t *stack_size) {
 
     // add thread to linked list of all threads
     thread_t *th = (thread_t *)malloc(sizeof(thread_t));
-    th->id = id;
+    th->hThread = hThread;
+    th->id = GetCurrentThread();
     th->ready = 0;
     th->arg = arg;
     th->next = thread;
