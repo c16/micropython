@@ -22,15 +22,6 @@ jobs:
         "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe" mpy-cross.vcxproj /property:Platform=x86
         cd ../ports/windows
         "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe" micropython.vcxproj /property:Platform=x86
-      
-  mingw:
-      runs-on: windows-latest
-          
-      steps:
-      - uses: actions/checkout@v1
-      - name: make
-        run: |
-          cd mpy-cross
-          mingw64-make
+    
     
     
