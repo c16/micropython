@@ -3,7 +3,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2018-2019 Damien P. George
+ * Copyright (c) 2019 Damien P. George
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,22 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#ifndef MICROPY_INCLUDED_STM32_RFCORE_H
+#define MICROPY_INCLUDED_STM32_RFCORE_H
 
-#include "py/runtime.h"
+#include <stdint.h>
 
-#if MICROPY_BLUETOOTH_NIMBLE
+void rfcore_init(void);
 
-/******************************************************************************/
-// Misc functions needed by Nimble
+void rfcore_ble_init(void);
+void rfcore_ble_hci_cmd(size_t len, const uint8_t *src);
+void rfcore_ble_check_msg(int (*cb)(void*, uint8_t), void *env);
 
-#include <stdarg.h>
-
-int nimble_sprintf(char *str, const char *fmt, ...) {
-    va_list ap;
-    va_start(ap, fmt);
-    int ret = vsnprintf(str, 65535, fmt, ap);
-    va_end(ap);
-    return ret;
-}
-
-#endif
+#endif // MICROPY_INCLUDED_STM32_RFCORE_H
