@@ -125,6 +125,8 @@
 #define MICROPY_WARNINGS            (1)
 #define MICROPY_PY_STR_BYTES_CMP_WARN (1)
 
+#define MICROPY_PY_SOCKET (1)
+
 extern const struct _mp_print_t mp_stderr_print;
 
 #ifdef _MSC_VER
@@ -179,12 +181,20 @@ void mp_hal_dupterm_tx_strn(const char *str, size_t len);
 #define mp_hal_dupterm_tx_strn(s, l)
 #endif
 
+#if MICROPY_PY_SOCKET
+#define MICROPY_PY_SOCKET_DEF { MP_ROM_QSTR(MP_QSTR_usocket), MP_ROM_PTR(&mp_module_socket) },
+#else
+#define MICROPY_PY_SOCKET_DEF
+#endif
+
 #define MICROPY_PORT_BUILTINS \
-    { MP_ROM_QSTR(MP_QSTR_open), MP_ROM_PTR(&mp_builtin_open_obj) },
+       { MP_ROM_QSTR(MP_QSTR_open), MP_ROM_PTR(&mp_builtin_open_obj) },
 
 extern const struct _mp_obj_module_t mp_module_os;
+extern const struct _mp_obj_module_t mp_module_socket;
 extern const struct _mp_obj_module_t mp_module_time;
 #define MICROPY_PORT_BUILTIN_MODULES \
+    MICROPY_PY_SOCKET_DEF \
     { MP_ROM_QSTR(MP_QSTR_utime), MP_ROM_PTR(&mp_module_time) }, \
     { MP_ROM_QSTR(MP_QSTR_umachine), MP_ROM_PTR(&mp_module_machine) }, \
     { MP_ROM_QSTR(MP_QSTR_uos), MP_ROM_PTR(&mp_module_os) }, \
