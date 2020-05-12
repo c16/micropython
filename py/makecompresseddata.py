@@ -51,9 +51,10 @@ def word_compression(error_strings):
             topn[word] += 1
 
     # Order not just by frequency, but by expected saving. i.e. prefer a longer string that is used less frequently.
+    # Use the word itself for ties so that compression is deterministic.
     def bytes_saved(item):
         w, n = item
-        return -((len(w) + 1) * (n - 1))
+        return -((len(w) + 1) * (n - 1)), w
 
     top128 = sorted(topn.items(), key=bytes_saved)[:128]
 
@@ -143,7 +144,7 @@ def ngram_compression(error_strings):
 
 
 def main(collected_path, fn):
-    error_strings = {}
+    error_strings = collections.OrderedDict()
     max_uncompressed_len = 0
     num_uses = 0
 
@@ -168,7 +169,11 @@ def main(collected_path, fn):
 
     # Print the replacements.
     for uncomp, comp in error_strings.items():
-        print('MP_MATCH_COMPRESSED("{}", "\\{:03o}{}")'.format(uncomp, _COMPRESSED_MARKER, comp))
+        if uncomp == comp:
+            prefix = ""
+        else:
+            prefix = "\\{:03o}".format(_COMPRESSED_MARKER)
+        print('MP_MATCH_COMPRESSED("{}", "{}{}")'.format(uncomp, prefix, comp))
 
     # Used to calculate the "true" length of the (escaped) compressed strings.
     def unescape(s):

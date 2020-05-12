@@ -40,7 +40,7 @@ INC += -I.
 INC += -I$(TOP)
 INC += -I$(BUILD)
 
-CFLAGS += $(INC) -Wall -Wpointer-arith -Werror -std=gnu99 $(COPT) \
+CFLAGS += $(INC) -Wall -Wpointer-arith -Wdouble-promotion -Wfloat-conversion -Werror -std=gnu99 $(COPT) \
 	 -ffunction-sections -fdata-sections
 
 #Debugging/Optimization
@@ -94,6 +94,7 @@ LIB_SRC_C += $(addprefix lib/,\
 	libm/atanf.c \
 	libm/atan2f.c \
 	libm/roundf.c \
+	utils/gchelper_native.c \
 	utils/sys_stdio_mphal.c \
 	)
 

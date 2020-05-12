@@ -959,11 +959,6 @@ typedef double mp_float_t;
 #define MICROPY_PY_BUILTINS_ROUND_INT (0)
 #endif
 
-// Whether to support timeout exceptions (like socket.timeout)
-#ifndef MICROPY_PY_BUILTINS_TIMEOUTERROR
-#define MICROPY_PY_BUILTINS_TIMEOUTERROR (0)
-#endif
-
 // Whether to support complete set of special methods for user
 // classes, or only the most used ones. "Inplace" methods are
 // controlled by MICROPY_PY_ALL_INPLACE_SPECIAL_METHODS below.
@@ -1454,6 +1449,10 @@ typedef double mp_float_t;
 #define MICROPY_WRAP_MP_KEYBOARD_INTERRUPT(f) f
 #endif
 
+#ifndef MICROPY_WRAP_MP_SCHED_SCHEDULE
+#define MICROPY_WRAP_MP_SCHED_SCHEDULE(f) f
+#endif
+
 /*****************************************************************************/
 /* Miscellaneous settings                                                    */
 
@@ -1561,7 +1560,7 @@ typedef double mp_float_t;
 #define UINT_FMT "%u"
 #define INT_FMT "%d"
 #endif
-#endif //INT_FMT
+#endif // INT_FMT
 
 // Modifier for function which doesn't return
 #ifndef NORETURN

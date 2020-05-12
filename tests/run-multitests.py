@@ -58,6 +58,15 @@ instance{}()
 multitest.flush()
 """
 
+# The btstack implementation on Unix generates some spurious output that we
+# can't control.
+IGNORE_OUTPUT_MATCHES = (
+    "libusb: error ",  # It tries to open devices that it doesn't have access to (libusb prints unconditionally).
+    "hci_transport_h2_libusb.c",  # Same issue. We enable LOG_ERROR in btstack.
+    "USB Path: ",  # Hardcoded in btstack's libusb transport.
+    "hci_number_completed_packet",  # Warning from btstack.
+)
+
 
 class PyInstance:
     def __init__(self):
@@ -221,6 +230,9 @@ def run_test_on_instances(test_file, num_instances, instances):
     injected_globals = ""
     output = [[] for _ in range(num_instances)]
 
+    if cmd_args.trace_output:
+        print("TRACE {}:".format("|".join(str(i) for i in instances)))
+
     # Start all instances running, in order, waiting until they signal they are ready
     for idx in range(num_instances):
         append_code = APPEND_CODE_TEMPLATE.format(injected_globals, idx)
@@ -239,7 +251,7 @@ def run_test_on_instances(test_file, num_instances, instances):
                 time.sleep(0.1)
                 continue
             last_read_time = time.time()
-            if out is not None:
+            if out is not None and not any(m in out for m in IGNORE_OUTPUT_MATCHES):
                 trace_instance_output(idx, out)
                 if out.startswith("SET "):
                     injected_globals += out[4:] + "\n"
@@ -317,10 +329,6 @@ def run_tests(test_files, instances_truth, instances_test):
         # Run test on test instances
         error, skip, output_test = run_test_on_instances(test_file, num_instances, instances_test)
 
-        if cmd_args.show_output:
-            print("### TEST ###")
-            print(output_test, end="")
-
         if not skip:
             # Check if truth exists in a file, and read it in
             test_file_expected = test_file + ".exp"
@@ -332,7 +340,11 @@ def run_tests(test_files, instances_truth, instances_test):
                 _, _, output_truth = run_test_on_instances(
                     test_file, num_instances, instances_truth
                 )
-            if cmd_args.show_output:
+
+        if cmd_args.show_output:
+            print("### TEST ###")
+            print(output_test, end="")
+            if not skip:
                 print("### TRUTH ###")
                 print(output_truth, end="")
 
@@ -394,6 +406,10 @@ def main():
     for i in cmd_args.instance:
         if i.startswith("exec:"):
             instances_test.append(PyInstanceSubProcess([i[len("exec:") :]]))
+        elif i == "micropython":
+            instances_test.append(PyInstanceSubProcess([MICROPYTHON]))
+        elif i == "cpython":
+            instances_test.append(PyInstanceSubProcess([CPYTHON3]))
         elif i.startswith("pyb:"):
             instances_test.append(PyInstancePyboard(i[len("pyb:") :]))
         else:

@@ -235,7 +235,7 @@ STATIC mp_obj_t re_split(size_t n_args, const mp_obj_t *args) {
         mp_obj_t s = mp_obj_new_str_of_type(str_type, (const byte *)subj.begin, caps[0] - subj.begin);
         mp_obj_list_append(retval, s);
         if (self->re.sub > 0) {
-            mp_raise_NotImplementedError(MP_ERROR_TEXT("Splitting with sub-captures"));
+            mp_raise_NotImplementedError(MP_ERROR_TEXT("splitting with sub-captures"));
         }
         subj.begin = caps[1];
         if (maxsplit > 0 && --maxsplit == 0) {
@@ -403,7 +403,7 @@ STATIC mp_obj_t mod_re_compile(size_t n_args, const mp_obj_t *args) {
     int error = re1_5_compilecode(&o->re, re_str);
     if (error != 0) {
     error:
-        mp_raise_ValueError(MP_ERROR_TEXT("Error in regex"));
+        mp_raise_ValueError(MP_ERROR_TEXT("error in regex"));
     }
     #if MICROPY_PY_URE_DEBUG
     if (flags & FLAG_DEBUG) {
@@ -474,4 +474,4 @@ const mp_obj_module_t mp_module_ure = {
 #include "re1.5/recursiveloop.c"
 #include "re1.5/charclass.c"
 
-#endif //MICROPY_PY_URE
+#endif // MICROPY_PY_URE

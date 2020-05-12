@@ -3,7 +3,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2016 Damien P. George
+ * Copyright (c) 2013, 2014 Damien P. George
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,14 +24,24 @@
  * THE SOFTWARE.
  */
 
-#include "etshal.h"
-#include "ets_alt_task.h"
+#include <stdio.h>
 
-#include "modmachine.h"
+#include "py/mpstate.h"
+#include "py/gc.h"
+#include "lib/utils/gchelper.h"
 
-// this is in a separate file so it can go in iRAM
-void pin_intr_handler_iram(void *arg) {
-    uint32_t status = GPIO_REG_READ(GPIO_STATUS_ADDRESS);
-    GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, status);
-    pin_intr_handler(status);
+#if MICROPY_ENABLE_GC
+
+// provided by gchelper_*.s
+uintptr_t gc_helper_get_regs_and_sp(uintptr_t *regs);
+
+MP_NOINLINE void gc_helper_collect_regs_and_stack(void) {
+    // get the registers and the sp
+    gc_helper_regs_t regs;
+    uintptr_t sp = gc_helper_get_regs_and_sp(regs);
+
+    // trace the stack, including the registers (since they live on the stack in this function)
+    gc_collect_root((void **)sp, ((uint32_t)MP_STATE_THREAD(stack_top) - sp) / sizeof(uint32_t));
 }
+
+#endif

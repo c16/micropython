@@ -71,24 +71,6 @@ typedef struct _sdcard_obj_t {
 
 #define _SECTOR_SIZE(self) (self->card.csd.sector_size)
 
-STATIC esp_err_t check_esp_err(esp_err_t code) {
-    switch (code) {
-        case ESP_OK:
-            return ESP_OK;
-        case ESP_ERR_NO_MEM:
-            code = MP_ENOMEM;
-            break;
-        case ESP_ERR_TIMEOUT:
-            code = MP_ETIMEDOUT;
-            break;
-        case ESP_ERR_NOT_SUPPORTED:
-            code = MP_EOPNOTSUPP;
-            break;
-    }
-
-    mp_raise_OSError(code);
-}
-
 STATIC gpio_num_t pin_or_int(const mp_obj_t arg) {
     if (mp_obj_is_small_int(arg)) {
         return MP_OBJ_SMALL_INT_VALUE(arg);
@@ -177,7 +159,7 @@ STATIC mp_obj_t machine_sdcard_make_new(const mp_obj_type_t *type, size_t n_args
 
     int slot_num = arg_vals[ARG_slot].u_int;
     if (slot_num < 0 || slot_num > 3) {
-        mp_raise_ValueError(MP_ERROR_TEXT("Slot number must be between 0 and 3 inclusive"));
+        mp_raise_ValueError(MP_ERROR_TEXT("slot number must be between 0 and 3 inclusive"));
     }
 
     // Slots 0 and 1 are native SD/MMC, slots 2 and 3 are SPI
@@ -253,7 +235,7 @@ STATIC mp_obj_t machine_sdcard_make_new(const mp_obj_type_t *type, size_t n_args
         if (width == 1 || width == 4 || (width == 8 && slot_num == 0)) {
             slot_config.width = width;
         } else {
-            mp_raise_ValueError(MP_ERROR_TEXT("Width must be 1 or 4 (or 8 on slot 0)"));
+            mp_raise_ValueError(MP_ERROR_TEXT("width must be 1 or 4 (or 8 on slot 0)"));
         }
 
         DEBUG_printf("  Calling init_slot()");
