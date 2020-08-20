@@ -25,6 +25,7 @@
 # THE SOFTWARE.
 
 from __future__ import print_function
+import errno
 import sys
 import os
 import subprocess
@@ -171,7 +172,7 @@ def mkdir(path):
         try:
             os.mkdir(cur_path)
         except OSError as er:
-            if er.args[0] == 17:  # file exists
+            if er.args[0] == errno.EEXIST:
                 pass
             else:
                 raise er
@@ -287,7 +288,8 @@ def main():
                     + ["-o", outfile, "-s", script, "-O{}".format(opt), infile]
                 )
                 if res != 0:
-                    print("error compiling {}: {}".format(infile, out))
+                    print("error compiling {}:".format(infile))
+                    sys.stdout.buffer.write(out)
                     raise SystemExit(1)
                 ts_outfile = get_timestamp(outfile)
             mpy_files.append(outfile)
