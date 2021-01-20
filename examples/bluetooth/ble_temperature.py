@@ -15,12 +15,16 @@ _IRQ_CENTRAL_CONNECT = const(1)
 _IRQ_CENTRAL_DISCONNECT = const(2)
 _IRQ_GATTS_INDICATE_DONE = const(20)
 
+_FLAG_READ = const(0x0002)
+_FLAG_NOTIFY = const(0x0010)
+_FLAG_INDICATE = const(0x0020)
+
 # org.bluetooth.service.environmental_sensing
 _ENV_SENSE_UUID = bluetooth.UUID(0x181A)
 # org.bluetooth.characteristic.temperature
 _TEMP_CHAR = (
     bluetooth.UUID(0x2A6E),
-    bluetooth.FLAG_READ | bluetooth.FLAG_NOTIFY | bluetooth.FLAG_INDICATE,
+    _FLAG_READ | _FLAG_NOTIFY | _FLAG_INDICATE,
 )
 _ENV_SENSE_SERVICE = (
     _ENV_SENSE_UUID,
@@ -35,7 +39,7 @@ class BLETemperature:
     def __init__(self, ble, name="mpy-temp"):
         self._ble = ble
         self._ble.active(True)
-        self._ble.irq(handler=self._irq)
+        self._ble.irq(self._irq)
         ((self._handle,),) = self._ble.gatts_register_services((_ENV_SENSE_SERVICE,))
         self._connections = set()
         self._payload = advertising_payload(
@@ -46,15 +50,15 @@ class BLETemperature:
     def _irq(self, event, data):
         # Track connections so we can send notifications.
         if event == _IRQ_CENTRAL_CONNECT:
-            conn_handle, _, _, = data
+            conn_handle, _, _ = data
             self._connections.add(conn_handle)
         elif event == _IRQ_CENTRAL_DISCONNECT:
-            conn_handle, _, _, = data
+            conn_handle, _, _ = data
             self._connections.remove(conn_handle)
             # Start advertising again to allow a new connection.
             self._advertise()
         elif event == _IRQ_GATTS_INDICATE_DONE:
-            conn_handle, value_handle, status, = data
+            conn_handle, value_handle, status = data
 
     def set_temperature(self, temp_deg_c, notify=False, indicate=False):
         # Data is sint16 in degrees Celsius with a resolution of 0.01 degrees Celsius.
