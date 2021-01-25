@@ -41,6 +41,10 @@ SRC_C = \
 	init.c \
 	sleep.c \
 	fmode.c \
+	help.c \
+	machine_uart.c \
+	modusocket.c \
+	mpthreadport.c \
 	$(SRC_MOD)
 
 OBJ = $(PY_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
