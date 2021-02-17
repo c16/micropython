@@ -32,13 +32,15 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-//#include <sys/socket.h>
-//#include <netinet/in.h>
-//#include <arpa/inet.h>
-//#include <netdb.h>
+
+#ifdef _MSC_VER
+#pragma comment(lib, "Ws2_32.lib")
+#else
+#undef _WIN32_WINNT
+#define _WIN32_WINNT 0x600
+#endif
 #include "winsock2.h"
 #include "ws2tcpip.h"
-#pragma comment(lib, "Ws2_32.lib")
 
 #include <errno.h>
 #include <math.h>
@@ -226,11 +228,11 @@ STATIC mp_obj_t socket_recv(size_t n_args, const mp_obj_t *args) {
         flags = MP_OBJ_SMALL_INT_VALUE(args[2]);
     }
 
-    byte *buf = m_new(byte, sz);
+    char *buf = m_new(char, sz);
     int out_sz = recv(self->fd, buf, sz, flags);
     RAISE_ERRNO(out_sz, errno);
 
-    mp_obj_t ret = mp_obj_new_str_of_type(&mp_type_bytes, buf, out_sz);
+    mp_obj_t ret = mp_obj_new_str_of_type(&mp_type_bytes, (const byte *)buf, out_sz);
     m_del(char, buf, sz);
     return ret;
 }
@@ -248,11 +250,11 @@ STATIC mp_obj_t socket_recvfrom(size_t n_args, const mp_obj_t *args) {
     struct sockaddr_storage addr;
     socklen_t addr_len = sizeof(addr);
 
-    byte *buf = m_new(byte, sz);
+    char *buf = m_new(char, sz);
     int out_sz = recvfrom(self->fd, buf, sz, flags, (struct sockaddr*)&addr, &addr_len);
     RAISE_ERRNO(out_sz, errno);
 
-    mp_obj_t buf_o = mp_obj_new_str_of_type(&mp_type_bytes, buf, out_sz);
+    mp_obj_t buf_o = mp_obj_new_str_of_type(&mp_type_bytes, (const byte*)buf, out_sz);
     m_del(char, buf, sz);
 
     mp_obj_tuple_t *t = MP_OBJ_TO_PTR(mp_obj_new_tuple(2, NULL));

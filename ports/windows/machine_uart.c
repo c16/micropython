@@ -479,7 +479,7 @@ bool uart_init(pyb_uart_obj_t *uart_obj,
 mp_uint_t uart_rx_any(pyb_uart_obj_t *uart_obj)
 {
     COMSTAT comstat;
-    uint32_t errors;
+    DWORD errors;
     ClearCommError(uart_obj->hComm, &errors, &comstat);
     return comstat.cbInQue;
 }
@@ -488,7 +488,7 @@ size_t uart_rx_data(pyb_uart_obj_t *self, void *src_out, size_t num_chars, int *
 {
     byte *buf = src_out;
 
-    uint32_t read;
+    DWORD read;
     BOOL  bSuccess = ReadFile(self->hComm, buf, num_chars, &read, NULL);
 
     if (!bSuccess) {
@@ -502,13 +502,13 @@ size_t uart_rx_data(pyb_uart_obj_t *self, void *src_out, size_t num_chars, int *
 bool uart_sendbreak(pyb_uart_obj_t *self)
 {
     HANDLE hComm = self->hComm;
-    uint32_t mask = 0U;
+    DWORD mask = 0U;
 
     BOOL bSuccess = GetCommMask(hComm, &mask);
     bSuccess &= SetCommMask(hComm, mask | EV_TXEMPTY);
 
     bSuccess &= SetCommBreak(hComm);
-    uint32_t evt = 0U;
+    DWORD evt = 0U;
     while ((evt & EV_TXEMPTY) == 0U) {
         WaitCommEvent(hComm, &evt, NULL);
     }
@@ -542,8 +542,8 @@ size_t uart_tx_data(pyb_uart_obj_t *self, const void *src_in, size_t num_chars, 
 {
     const byte *buf = src_in;
 
-    uint32_t written;
-    uint32_t length = num_chars;
+    DWORD written;
+    DWORD length = num_chars;
     BOOL bSuccess = WriteFile(self->hComm, buf, length, &written, NULL);
 
     if (!bSuccess) {
