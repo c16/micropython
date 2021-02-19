@@ -27,53 +27,41 @@
 #include <windows.h>
 #include <errno.h>
 #include <limits.h>
-#include "py/mpconfig.h"
 
-#if MICROPY_PY_THREAD == 0
 HANDLE waitTimer = NULL;
-#endif
 
 void init_sleep(void) {
-#if MICROPY_PY_THREAD == 0
     waitTimer = CreateWaitableTimer(NULL, TRUE, NULL);
-#endif
 }
 
 void deinit_sleep(void) {
-#if MICROPY_PY_THREAD == 0
     if (waitTimer != NULL) {
         CloseHandle(waitTimer);
         waitTimer = NULL;
     }
-#endif
 }
 
 int usleep_impl(__int64 usec) {
-#if MICROPY_PY_THREAD
-    HANDLE waitTimer = CreateWaitableTimer(NULL, TRUE, NULL);
-#endif
-    
     if (waitTimer == NULL) {
         errno = EAGAIN;
-    } else if (usec < 0 || usec > LLONG_MAX / 10) {
+        return -1;
+    }
+    if (usec < 0 || usec > LLONG_MAX / 10) {
         errno = EINVAL;
-    } else {
-        LARGE_INTEGER ft;
-        ft.QuadPart = -10 * usec; // 100 nanosecond interval, negative value = relative time
-        if (SetWaitableTimer(waitTimer, &ft, 0, NULL, NULL, 0) == 0) {
-            errno = EINVAL;
-        } else if (WaitForSingleObject(waitTimer, INFINITE) != WAIT_OBJECT_0) {
-            errno = EAGAIN;
-        } else {
-            // ok
-        }
+        return -1;
     }
 
-#if MICROPY_PY_THREAD
-    CloseHandle(waitTimer);
-#endif
-
-    return (errno != EAGAIN) ? 0:-1;
+    LARGE_INTEGER ft;
+    ft.QuadPart = -10 * usec; // 100 nanosecond interval, negative value = relative time
+    if (SetWaitableTimer(waitTimer, &ft, 0, NULL, NULL, 0) == 0) {
+        errno = EINVAL;
+        return -1;
+    }
+    if (WaitForSingleObject(waitTimer, INFINITE) != WAIT_OBJECT_0) {
+        errno = EAGAIN;
+        return -1;
+    }
+    return 0;
 }
 
 #ifdef _MSC_VER // mingw and the likes provide their own usleep()
